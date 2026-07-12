@@ -138,16 +138,23 @@
   50% { transform: translateY(8px); }
 }
 
-/* En móvil (mucho más alto que ancho que la foto, que es panorámica
-   16:9-ish) object-fit:cover con altura completa solo deja ver una
-   franja vertical estrecha (~26% del ancho real) centrada en el punto
-   de la puerta — ni la pizarra ni el rótulo completo entran en esa
-   franja. Aquí encogemos la caja de la foto (mismo ancho, menos alto,
-   centrada verticalmente) para que cover necesite recortar menos por
-   los lados: object-position/transform-origin siguen fijos en 38%/61%
-   (posición real de la puerta en la foto original) así que la puerta
-   se mantiene anclada exactamente igual, tanto en reposo como durante
-   el zoom — solo cambia cuánto ancho alrededor de ella se ve. */
+/* La foto panorámica original (2200×1238) en una pantalla móvil (mucho
+   más alta que ancha) con object-fit:cover a pantalla completa solo deja
+   ver, como mucho, ~570px reales de la foto (lo manda la geometría: alto
+   del móvil ÷ alto de la foto × ancho del móvil) — y el rótulo por sí
+   solo mide ~900px. Verlo todo (pizarra + rótulo + puerta) a la vez es
+   incompatible con llenar la pantalla sin recortar nada; hay que elegir.
+   Encogemos la foto (mismo ancho, menos alto, centrada) para que quepa
+   todo. Object-position/transform-origin siguen en 38%/61% (posición
+   real de la puerta) así que la puerta se mantiene anclada igual, tanto
+   en reposo como durante el zoom.
+   Para las franjas que quedan encima/debajo: un intento anterior las
+   difuminaba con un filtro CSS en directo (`filter: blur()`), pero podía
+   no pintarse bien en algunos navegadores móviles y se veía como un
+   recuadro dubio contra el fondo liso. Esta vez el desenfoque viene ya
+   "cocinado" dentro de un archivo de imagen normal (hero-fachada-blurred.jpg,
+   generado una vez con sharp) — un <img> corriente, sin filtros ni trucos
+   que dependan del navegador. */
 @media (max-width: 640px) {
   .hero__frame-wrap {
     top: 50%;
@@ -157,20 +164,12 @@
     transform: translateY(-50%);
   }
 
-  /* La foto encogida de arriba deja franjas por encima/debajo dentro de
-     .hero (que tiene fondo liso var(--color-charcoal-900)). Contra ese
-     color plano, el rectángulo de la foto se veía como "un cuadro con
-     opacidad" pegado encima — un borde duro y artificial. Rellenamos esas
-     franjas con la MISMA foto, ampliada y muy desenfocada, para que el
-     rectángulo se funda con el fondo en vez de recortarse contra él. */
   .hero::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: var(--color-charcoal-900) url('/images/hero/hero-fachada.jpg') center 61% / cover no-repeat;
-    filter: blur(28px) brightness(0.55);
-    transform: scale(1.15);
+    background: var(--color-charcoal-900) url('/images/hero/hero-fachada-blurred.jpg') center 61% / cover no-repeat;
   }
 }
 

@@ -81,6 +81,17 @@ export async function initPanorama() {
 
   const reduced = prefersReducedMotion();
 
+  // defaultZoomLvl fija el FOV VERTICAL, siempre igual en cualquier
+  // pantalla — pero el FOV HORIZONTAL que realmente se percibe depende
+  // del aspect ratio del contenedor. En una pantalla ancha (escritorio)
+  // ese mismo FOV vertical da un FOV horizontal amplio; en una pantalla
+  // estrecha y alta (móvil) da un FOV horizontal mucho más estrecho —
+  // efecto túnel, se ve "con más zoom" aunque el número configurado sea
+  // el mismo. Por eso en móvil hace falta un zoom bastante menor (y un
+  // maxFov más alto, ya que 90° se queda corto) para compensar y lograr
+  // una sensación de amplitud parecida a la de escritorio.
+  const isMobile = window.matchMedia('(max-width: 640px)').matches;
+
   const viewer = new Viewer({
     container,
     // Sin `panorama` de nivel superior a propósito: con VirtualTourPlugin
@@ -101,7 +112,9 @@ export async function initPanorama() {
     navbar: ['zoom', 'caption', 'fullscreen'],
     // Un poco menos de zoom que el 50 por defecto = FOV más ancho = la
     // sala del comedor-1 (nodo de arranque) se ve un poco más alejada.
-    defaultZoomLvl: 40,
+    // En móvil, bastante menos zoom todavía (ver nota de isMobile arriba).
+    defaultZoomLvl: isMobile ? 5 : 40,
+    maxFov: isMobile ? 105 : 90,
     // Encuadre de arranque: coordenadas leídas a mano con el chivato de
     // yaw/pitch en vivo (ver panel dev-only más abajo), ajustadas por el
     // cliente para encarar los sofás con un poco de la tele en el encuadre.
