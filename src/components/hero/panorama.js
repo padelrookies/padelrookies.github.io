@@ -92,11 +92,6 @@ export async function initPanorama() {
   // una sensación de amplitud parecida a la de escritorio.
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
-  // Encuadre vertical fijo de arranque (también usado para "anclar" el
-  // pitch mientras el giroscopio está activo — ver más abajo).
-  const PITCH_LOCK_DEG = -11;
-  const PITCH_LOCK = (PITCH_LOCK_DEG * Math.PI) / 180;
-
   const viewer = new Viewer({
     container,
     // Sin `panorama` de nivel superior a propósito: con VirtualTourPlugin
@@ -124,7 +119,7 @@ export async function initPanorama() {
     // yaw/pitch en vivo (ver panel dev-only más abajo), ajustadas por el
     // cliente para encarar los sofás con un poco de la tele en el encuadre.
     defaultYaw: '56deg',
-    defaultPitch: `${PITCH_LOCK_DEG}deg`,
+    defaultPitch: '-11deg',
     plugins: [
       VirtualTourPlugin.withConfig({
         positionMode: 'manual',
@@ -169,21 +164,13 @@ export async function initPanorama() {
   container.addEventListener('touchend', resumeGyroscope, { passive: true });
   container.addEventListener('mouseup', resumeGyroscope);
 
-  // El giroscopio de PSV calcula el yaw (girar a izq/dcha) en relativo,
-  // respecto a hacia dónde ya estabas mirando al activarlo — pero el
-  // pitch (subir/bajar la vista) lo toma tal cual del sensor, sin
-  // relativizar. Como el móvil casi nunca se sostiene perfectamente en
-  // vertical, en cuanto se activa el giroscopio la vista salta a
-  // apuntar más hacia abajo/arriba de lo esperado — al acercarse a algo
-  // más cercano (mesa, suelo), da sensación de zoom aunque el nivel de
-  // zoom real no cambie. Aquí se corrige devolviendo el pitch al valor
-  // de encuadre elegido en cuanto el giroscopio lo mueve, dejando que
-  // solo controle el giro horizontal (que sí es fiable).
-  viewer.addEventListener('position-updated', ({ position }) => {
-    if (gyroscopePlugin.isEnabled() && Math.abs(position.pitch - PITCH_LOCK) > 0.001) {
-      viewer.rotate({ yaw: position.yaw, pitch: PITCH_LOCK });
-    }
-  });
+  // (Se probó a "anclar" el pitch del giroscopio — que PSV toma tal
+  // cual del sensor, sin relativizar como hace con el yaw — forzando la
+  // posición en cada `position-updated`. Se revirtió: pelea con el
+  // suavizado interno del propio giroscopio (que anima con su sistema
+  // de "dynamics", no con `viewer.rotate()`) y el resultado era un
+  // giro brusco y nada fluido. Queda pendiente encontrar una forma de
+  // evitar el salto inicial de pitch sin interferir cada fotograma.)
 
   if (import.meta.env.DEV) {
     window.__psvDebug = { viewer, markersPlugin };
