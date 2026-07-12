@@ -156,20 +156,42 @@ export async function initPanorama() {
   // primer gesto que pide permiso en iOS, también lo reactiva solo justo
   // después de cualquier pellizco de zoom o arrastre con dos dedos.
   const gyroscopePlugin = viewer.getPlugin(GyroscopePlugin);
+  // Se vuelve `true` en cuanto el usuario arrastra de verdad para mirar
+  // (ver más abajo) — a partir de ahí `resumeGyroscope` deja de
+  // reactivarlo, para no pelearse con el control manual.
+  let gyroManuallyDisabled = false;
   const resumeGyroscope = () => {
-    if (!gyroscopePlugin.isEnabled()) gyroscopePlugin.start().catch(() => {});
+    if (!gyroManuallyDisabled && !gyroscopePlugin.isEnabled()) gyroscopePlugin.start().catch(() => {});
   };
   resumeGyroscope();
   container.addEventListener('touchend', resumeGyroscope, { passive: true });
   container.addEventListener('mouseup', resumeGyroscope);
 
-  // (Se probó a "anclar" el pitch del giroscopio — que PSV toma tal
-  // cual del sensor, sin relativizar como hace con el yaw — forzando la
-  // posición en cada `position-updated`. Se revirtió: pelea con el
-  // suavizado interno del propio giroscopio (que anima con su sistema
-  // de "dynamics", no con `viewer.rotate()`) y el resultado era un
-  // giro brusco y nada fluido. Queda pendiente encontrar una forma de
-  // evitar el salto inicial de pitch sin interferir cada fotograma.)
+  // El pitch (subir/bajar la vista) del giroscopio se recalcula del
+  // sensor en CADA fotograma, sin relativizar como hace con el yaw —
+  // así que arrastrar con el dedo para corregirlo solo dura un
+  // instante: el siguiente fotograma lo vuelve a fijar según cómo esté
+  // físicamente inclinado el móvil en ese momento (p.ej. tumbado en el
+  // sofá, mirando hacia arriba). Ya se intentó "anclarlo" a la fuerza en
+  // cada fotograma y el resultado era un giro brusco (pelea con el
+  // sistema de animación interno del giroscopio) — revertido.
+  //
+  // En vez de pelear fotograma a fotograma, se apaga el giroscopio
+  // ENTERO en cuanto se detecta un arrastre manual real (no un simple
+  // roce/pellizco de zoom, filtrado con MANUAL_DRAG_THRESHOLD): a partir
+  // de ahí el usuario controla la vista completa (arriba/abajo e
+  // izquierda/derecha) solo con el dedo, sin ninguna corrección, hasta
+  // que recargue la página.
+  const MANUAL_DRAG_THRESHOLD = 0.02; // ~1.1°, para no confundir un pellizco de zoom con un arrastre real
+  viewer.addEventListener('before-rotate', ({ position }) => {
+    if (!gyroscopePlugin.isEnabled()) return;
+    const current = viewer.getPosition();
+    const delta = Math.abs(position.pitch - current.pitch) + Math.abs(position.yaw - current.yaw);
+    if (delta > MANUAL_DRAG_THRESHOLD) {
+      gyroManuallyDisabled = true;
+      gyroscopePlugin.stop();
+    }
+  });
 
   if (import.meta.env.DEV) {
     window.__psvDebug = { viewer, markersPlugin };
