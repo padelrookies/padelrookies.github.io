@@ -210,6 +210,42 @@
   opacity: 1;
 }
 
+/* Con un solo dedo controlando la vista 360° (ver panorama.js), ese
+   dedo ya no hace scroll de página — esta es la única forma de seguir
+   bajando desde dentro de la foto en móvil. En escritorio no hace
+   falta: la rueda del ratón sigue funcionando aunque se arrastre con
+   el botón para mirar alrededor, así que el botón se queda oculto. */
+.hero__continue-hint {
+  display: none;
+  position: absolute;
+  z-index: 5;
+  bottom: calc(var(--space-md) + 34px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--color-cream-50);
+  background: rgba(36, 21, 33, 0.55);
+  border: none;
+  padding: var(--space-3xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+@media (pointer: coarse) {
+  .hero__continue-hint {
+    display: block;
+  }
+
+  .hero__panorama-mount.is-interactive ~ .hero__continue-hint {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 /* El botón de cerrar (×) nativo del panel de PSV se dibuja en la esquina
    superior derecha del panel; sin este ajuste queda justo debajo de la
    nav fija (z-index más alto), tapado e inalcanzable. Bajamos el panel

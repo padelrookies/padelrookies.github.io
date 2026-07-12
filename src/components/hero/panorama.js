@@ -99,13 +99,12 @@ export async function initPanorama() {
     // `startNodeId` a la vez provoca una carrera que aborta la primera
     // petición de la imagen (visto en pruebas: net::ERR_ABORTED).
     //
-    // touchmoveTwoFingers:true a propósito — el panorama ocupa toda la
-    // pantalla en móvil, así que un arrastre de un solo dedo tiene que
-    // seguir haciendo scroll de página con normalidad (para poder llegar
-    // a "Ubicación"/footer sin quedarse "atrapado" dentro del visor).
-    // Mirar alrededor pasa a requerir dos dedos, igual que en Google Maps
-    // Street View embebido.
-    touchmoveTwoFingers: true,
+    // Un solo dedo para mirar alrededor (más cómodo/intuitivo que exigir
+    // dos). Contrapartida: ese mismo dedo ya no hace scroll de página
+    // dentro de la foto, así que el botón "Seguir bajando ↓" (más abajo,
+    // se muestra en cuanto la foto es interactiva) es la única forma de
+    // continuar hacia "Ubicación" en móvil sin quedarse atrapado.
+    touchmoveTwoFingers: false,
     mousewheel: false,
     // Sin botón de "gyroscope" en la navbar a propósito: el giroscopio se
     // activa solo (ver más abajo), no hace falta que el usuario lo pulse.
@@ -210,7 +209,13 @@ export async function initPanorama() {
     const isTouch = window.matchMedia('(pointer: coarse)').matches;
     const hint = document.querySelector('.hero__drag-hint');
     if (hint && isTouch) {
-      hint.textContent = 'Desliza con dos dedos para mirar alrededor';
+      hint.textContent = 'Desliza para mirar alrededor';
     }
+    // Con un solo dedo controlando la vista 360°, ya no queda ningún
+    // gesto táctil libre para hacer scroll de página desde dentro de la
+    // foto — este botón es la única salida en móvil.
+    document.querySelector('.hero__continue-hint')?.addEventListener('click', () => {
+      document.querySelector('#ubicacion')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    });
   });
 }
