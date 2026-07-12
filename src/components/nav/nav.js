@@ -9,7 +9,7 @@ export function renderNav() {
         <a class="nav-fixed__brand" href="/">
           <img src="/images/logo/logo.png" alt="${contacto.nombre}" width="55" height="48" />
         </a>
-        <ul class="nav-fixed__links">
+        <ul class="nav-fixed__links" id="nav-links">
           <li><a href="/carta.html">Carta</a></li>
           <li><a href="/esencia.html">Nuestra esencia</a></li>
           <li><a href="/servicios.html">Servicios</a></li>
@@ -29,7 +29,40 @@ export function renderNav() {
           >
             <img src="/icons/whatsapp.svg" alt="" width="20" height="20" />
           </a>
+          <button
+            class="nav-fixed__toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="nav-links"
+            aria-label="Abrir menú"
+          >
+            <span></span><span></span><span></span>
+          </button>
         </div>
       </div>
     </nav>`;
+
+  const nav = root.querySelector('.nav-fixed');
+  const toggle = root.querySelector('.nav-fixed__toggle');
+  const links = root.querySelector('#nav-links');
+
+  const closeMenu = () => {
+    nav.classList.remove('nav-fixed--open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Abrir menú');
+  };
+  toggle.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('nav-fixed--open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
+  });
+  // Al navegar (clic en un enlace) el menú debe cerrarse solo — si es un
+  // enlace con ancla (#horarios) en la propia portada, no hay recarga de
+  // página que lo cierre por sí sola.
+  links.addEventListener('click', (e) => {
+    if (e.target.closest('a')) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
 }

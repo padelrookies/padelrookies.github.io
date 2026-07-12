@@ -79,8 +79,80 @@
   }
 }
 
+.nav-fixed__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+  cursor: pointer;
+}
+
+.nav-fixed__toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--color-charcoal-900);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* Botón hamburguesa → X cuando el menú está abierto */
+.nav-fixed--open .nav-fixed__toggle span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-fixed--open .nav-fixed__toggle span:nth-child(2) {
+  opacity: 0;
+}
+.nav-fixed--open .nav-fixed__toggle span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
 @media (max-width: 720px) {
+  .nav-fixed__toggle {
+    display: flex;
+  }
+
+  /* Con 5 enlaces (algunos largos, como "Nuestra esencia" o "Cómo
+     llegar") no caben en una fila junto al logo y los iconos — en vez
+     de encogerlos hasta ilegibles, se ocultan y se despliegan hacia
+     abajo con el botón de hamburguesa. */
   .nav-fixed__links {
-    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--color-cream-50);
+    border-bottom: 1px solid rgba(92, 10, 102, 0.12);
+    box-shadow: var(--shadow-md);
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition: max-height 0.3s ease, visibility 0.3s;
+  }
+
+  .nav-fixed--open .nav-fixed__links {
+    max-height: 60vh;
+    visibility: visible;
+  }
+
+  .nav-fixed__links li {
+    border-top: 1px solid rgba(92, 10, 102, 0.08);
+  }
+
+  .nav-fixed__links a {
+    display: block;
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
   }
 }
