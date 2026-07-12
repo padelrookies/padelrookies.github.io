@@ -156,6 +156,22 @@
     aspect-ratio: 3 / 4;
     transform: translateY(-50%);
   }
+
+  /* La foto encogida de arriba deja franjas por encima/debajo dentro de
+     .hero (que tiene fondo liso var(--color-charcoal-900)). Contra ese
+     color plano, el rectángulo de la foto se veía como "un cuadro con
+     opacidad" pegado encima — un borde duro y artificial. Rellenamos esas
+     franjas con la MISMA foto, ampliada y muy desenfocada, para que el
+     rectángulo se funda con el fondo en vez de recortarse contra él. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--color-charcoal-900) url('/images/hero/hero-fachada.jpg') center 61% / cover no-repeat;
+    filter: blur(28px) brightness(0.55);
+    transform: scale(1.15);
+  }
 }
 
 .hero__drag-hint {

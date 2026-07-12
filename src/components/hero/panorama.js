@@ -132,20 +132,24 @@ export async function initPanorama() {
 
   // Giroscopio activo desde el principio, sin botón: en Android no hace
   // falta permiso y este start() ya vale. En iOS, DeviceOrientationEvent
-  // exige que el permiso se pida DENTRO de un gesto real del usuario
-  // (un toque) — este start() de aquí fallará en silencio ahí, así que
-  // además lo reintentamos en el primer toque/clic sobre el visor (el
-  // propio gesto de arrastrar con dos dedos ya sirve como ese primer
-  // toque), sin necesidad de un botón dedicado para ello.
+  // exige que el permiso se pida DENTRO de un gesto real del usuario (un
+  // toque), así que este start() de aquí fallará en silencio ahí.
+  //
+  // Además, PSV apaga el giroscopio solo cada vez que se detecta un
+  // gesto táctil de mover/hacer zoom (StopAllEvent interno — pensado
+  // para que el gesto manual no compita con el giroscopio mientras
+  // dura, pero de paso lo deja apagado para siempre tras un pellizco de
+  // zoom). Por eso reintentamos encenderlo no solo una vez al principio,
+  // sino cada vez que se suelta el dedo: así, además de servir como el
+  // primer gesto que pide permiso en iOS, también lo reactiva solo justo
+  // después de cualquier pellizco de zoom o arrastre con dos dedos.
   const gyroscopePlugin = viewer.getPlugin(GyroscopePlugin);
-  gyroscopePlugin.start().catch(() => {});
-  const retryGyroscopeOnFirstTouch = () => {
+  const resumeGyroscope = () => {
     if (!gyroscopePlugin.isEnabled()) gyroscopePlugin.start().catch(() => {});
-    container.removeEventListener('touchstart', retryGyroscopeOnFirstTouch);
-    container.removeEventListener('click', retryGyroscopeOnFirstTouch);
   };
-  container.addEventListener('touchstart', retryGyroscopeOnFirstTouch, { once: true, passive: true });
-  container.addEventListener('click', retryGyroscopeOnFirstTouch, { once: true });
+  resumeGyroscope();
+  container.addEventListener('touchend', resumeGyroscope, { passive: true });
+  container.addEventListener('mouseup', resumeGyroscope);
 
   if (import.meta.env.DEV) {
     window.__psvDebug = { viewer, markersPlugin };
