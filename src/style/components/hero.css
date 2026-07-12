@@ -138,6 +138,26 @@
   50% { transform: translateY(8px); }
 }
 
+/* En móvil (mucho más alto que ancho que la foto, que es panorámica
+   16:9-ish) object-fit:cover con altura completa solo deja ver una
+   franja vertical estrecha (~26% del ancho real) centrada en el punto
+   de la puerta — ni la pizarra ni el rótulo completo entran en esa
+   franja. Aquí encogemos la caja de la foto (mismo ancho, menos alto,
+   centrada verticalmente) para que cover necesite recortar menos por
+   los lados: object-position/transform-origin siguen fijos en 38%/61%
+   (posición real de la puerta en la foto original) así que la puerta
+   se mantiene anclada exactamente igual, tanto en reposo como durante
+   el zoom — solo cambia cuánto ancho alrededor de ella se ve. */
+@media (max-width: 640px) {
+  .hero__frame-wrap {
+    top: 50%;
+    bottom: auto;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    transform: translateY(-50%);
+  }
+}
+
 .hero__drag-hint {
   position: absolute;
   z-index: 5;

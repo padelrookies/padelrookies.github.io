@@ -96,12 +96,9 @@ export async function initPanorama() {
     // Street View embebido.
     touchmoveTwoFingers: true,
     mousewheel: false,
-    // 'gyroscope' añade un botón que activa/desactiva el giroscopio del
-    // móvil para mirar alrededor inclinando el teléfono, en vez de (o
-    // además de) arrastrar con dos dedos. El propio botón se autooculta
-    // en dispositivos sin sensor de orientación (p.ej. escritorio), así
-    // que no hace falta detectarlo a mano.
-    navbar: ['zoom', 'gyroscope', 'caption', 'fullscreen'],
+    // Sin botón de "gyroscope" en la navbar a propósito: el giroscopio se
+    // activa solo (ver más abajo), no hace falta que el usuario lo pulse.
+    navbar: ['zoom', 'caption', 'fullscreen'],
     // Un poco menos de zoom que el 50 por defecto = FOV más ancho = la
     // sala del comedor-1 (nodo de arranque) se ve un poco más alejada.
     defaultZoomLvl: 40,
@@ -132,6 +129,23 @@ export async function initPanorama() {
   markersPlugin.addEventListener('select-marker', ({ marker }) => {
     handleMarkerAction(viewer, marker.data?.action);
   });
+
+  // Giroscopio activo desde el principio, sin botón: en Android no hace
+  // falta permiso y este start() ya vale. En iOS, DeviceOrientationEvent
+  // exige que el permiso se pida DENTRO de un gesto real del usuario
+  // (un toque) — este start() de aquí fallará en silencio ahí, así que
+  // además lo reintentamos en el primer toque/clic sobre el visor (el
+  // propio gesto de arrastrar con dos dedos ya sirve como ese primer
+  // toque), sin necesidad de un botón dedicado para ello.
+  const gyroscopePlugin = viewer.getPlugin(GyroscopePlugin);
+  gyroscopePlugin.start().catch(() => {});
+  const retryGyroscopeOnFirstTouch = () => {
+    if (!gyroscopePlugin.isEnabled()) gyroscopePlugin.start().catch(() => {});
+    container.removeEventListener('touchstart', retryGyroscopeOnFirstTouch);
+    container.removeEventListener('click', retryGyroscopeOnFirstTouch);
+  };
+  container.addEventListener('touchstart', retryGyroscopeOnFirstTouch, { once: true, passive: true });
+  container.addEventListener('click', retryGyroscopeOnFirstTouch, { once: true });
 
   if (import.meta.env.DEV) {
     window.__psvDebug = { viewer, markersPlugin };
