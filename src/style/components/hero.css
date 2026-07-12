@@ -32,7 +32,16 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Puerta de entrada real de la fachada */
+  /* Puerta de entrada real de la fachada (mismo punto que transform-origin
+     abajo, a propósito): sin object-position, object-fit:cover centra la
+     imagen en su punto medio (50%/50%) cuando recorta. En pantallas anchas
+     (~16:9) casi no recorta nada y no se nota, pero en móvil (mucho más
+     alto que ancho) el recorte es fuerte y solo se ve una franja vertical
+     estrecha alrededor del 50% horizontal — que cae entre los dos rótulos,
+     no en la puerta. Al fijar object-position en el mismo punto (38%/61%)
+     que usa transform-origin para el zoom, ese punto pasa a ser realmente
+     el pixel de la puerta tanto en reposo como durante el zoom. */
+  object-position: 38% 61%;
   transform-origin: 38% 61%;
   will-change: transform, filter;
 }

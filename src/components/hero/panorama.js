@@ -67,10 +67,11 @@ export async function initPanorama() {
   const container = document.getElementById('panorama-container');
   if (!container) return;
 
-  const [{ Viewer }, { MarkersPlugin }, { VirtualTourPlugin }] = await Promise.all([
+  const [{ Viewer }, { MarkersPlugin }, { VirtualTourPlugin }, { GyroscopePlugin }] = await Promise.all([
     import('@photo-sphere-viewer/core'),
     import('@photo-sphere-viewer/markers-plugin'),
     import('@photo-sphere-viewer/virtual-tour-plugin'),
+    import('@photo-sphere-viewer/gyroscope-plugin'),
   ]);
   await Promise.all([
     import('@photo-sphere-viewer/core/index.css'),
@@ -95,7 +96,12 @@ export async function initPanorama() {
     // Street View embebido.
     touchmoveTwoFingers: true,
     mousewheel: false,
-    navbar: ['zoom', 'caption', 'fullscreen'],
+    // 'gyroscope' añade un botón que activa/desactiva el giroscopio del
+    // móvil para mirar alrededor inclinando el teléfono, en vez de (o
+    // además de) arrastrar con dos dedos. El propio botón se autooculta
+    // en dispositivos sin sensor de orientación (p.ej. escritorio), así
+    // que no hace falta detectarlo a mano.
+    navbar: ['zoom', 'gyroscope', 'caption', 'fullscreen'],
     // Un poco menos de zoom que el 50 por defecto = FOV más ancho = la
     // sala del comedor-1 (nodo de arranque) se ve un poco más alejada.
     defaultZoomLvl: 40,
@@ -118,6 +124,7 @@ export async function initPanorama() {
         })),
       }),
       MarkersPlugin,
+      GyroscopePlugin,
     ],
   });
 
