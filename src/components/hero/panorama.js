@@ -67,11 +67,12 @@ export async function initPanorama() {
   const container = document.getElementById('panorama-container');
   if (!container) return;
 
-  const [{ Viewer }, { MarkersPlugin }, { VirtualTourPlugin }, { GyroscopePlugin }] = await Promise.all([
+  const [{ Viewer }, { MarkersPlugin }, { VirtualTourPlugin }, { GyroscopePlugin }, THREE] = await Promise.all([
     import('@photo-sphere-viewer/core'),
     import('@photo-sphere-viewer/markers-plugin'),
     import('@photo-sphere-viewer/virtual-tour-plugin'),
     import('@photo-sphere-viewer/gyroscope-plugin'),
+    import('three'),
   ]);
   await Promise.all([
     import('@photo-sphere-viewer/core/index.css'),
@@ -142,59 +143,151 @@ export async function initPanorama() {
     handleMarkerAction(viewer, marker.data?.action);
   });
 
-  // Giroscopio activo desde el principio, sin botón: en Android no hace
-  // falta permiso y este start() ya vale. En iOS, DeviceOrientationEvent
-  // exige que el permiso se pida DENTRO de un gesto real del usuario (un
-  // toque), así que este start() de aquí fallará en silencio ahí.
+  // --- Giroscopio con recalibración manual en los dos ejes ---
   //
-  // Además, PSV apaga el giroscopio solo cada vez que se detecta un
-  // gesto táctil de mover/hacer zoom (StopAllEvent interno — pensado
-  // para que el gesto manual no compita con el giroscopio mientras
-  // dura, pero de paso lo deja apagado para siempre tras un pellizco de
-  // zoom). Por eso reintentamos encenderlo no solo una vez al principio,
-  // sino cada vez que se suelta el dedo: así, además de servir como el
-  // primer gesto que pide permiso en iOS, también lo reactiva solo justo
-  // después de cualquier pellizco de zoom o arrastre con dos dedos.
+  // El plugin oficial de PSV solo "recuerda" la referencia para el giro
+  // izquierda-derecha (yaw): al activarse, calibra un desfase respecto a
+  // la vista actual y lo mantiene. El arriba-abajo (pitch) lo toma
+  // SIEMPRE en crudo del sensor, en cada fotograma, sin desfase — así
+  // que arrastrar con el dedo para corregirlo solo dura un instante: el
+  // propio bucle de render del plugin lo vuelve a fijar según la
+  // inclinación física real del móvil (p.ej. tumbado en el sofá, mirando
+  // hacia arriba). No hay ninguna opción de configuración para esto.
+  //
+  // Para que el pitch TAMBIÉN recalibre — que el giroscopio siga desde
+  // donde se suelta el arrastre, en vez de saltar siempre a la
+  // inclinación real del móvil, como pidió el cliente — se reimplementa
+  // aquí la aplicación de yaw/pitch con desfase propio en ambos ejes.
+  // Se sigue usando el GyroscopePlugin oficial, pero solo para lo que sí
+  // hace bien: pedir permiso de movimiento en iOS (`start()`) y mantener
+  // actualizado su objeto `controls` (la lectura del sensor, ya
+  // convertida a cuaternión) — se le llama `.stop()` justo después de
+  // `start()` para que su PROPIO bucle de render nunca escriba nada (así
+  // no compite con el nuestro), y se lee `controls` a mano en cada
+  // fotograma con el mismo helper que usa el plugin internamente.
   const gyroscopePlugin = viewer.getPlugin(GyroscopePlugin);
-  // Se vuelve `true` en cuanto el usuario arrastra de verdad para mirar
-  // (ver más abajo) — a partir de ahí `resumeGyroscope` deja de
-  // reactivarlo, para no pelearse con el control manual.
-  let gyroManuallyDisabled = false;
-  const resumeGyroscope = () => {
-    if (!gyroManuallyDisabled && !gyroscopePlugin.isEnabled()) gyroscopePlugin.start().catch(() => {});
-  };
-  resumeGyroscope();
-  container.addEventListener('touchend', resumeGyroscope, { passive: true });
-  container.addEventListener('mouseup', resumeGyroscope);
+  const gyroDirection = new THREE.Vector3();
+  let gyroActive = false;
+  let gyroYawOffset = null; // null = recalibrar en el próximo fotograma válido
+  let gyroPitchOffset = 0;
+  let gyroOriginalMoveInertia = null;
+  let gyroControlsReady = false;
+  let isPointerDown = false;
 
-  // El pitch (subir/bajar la vista) del giroscopio se recalcula del
-  // sensor en CADA fotograma, sin relativizar como hace con el yaw —
-  // así que arrastrar con el dedo para corregirlo solo dura un
-  // instante: el siguiente fotograma lo vuelve a fijar según cómo esté
-  // físicamente inclinado el móvil en ese momento (p.ej. tumbado en el
-  // sofá, mirando hacia arriba). Ya se intentó "anclarlo" a la fuerza en
-  // cada fotograma y el resultado era un giro brusco (pelea con el
-  // sistema de animación interno del giroscopio) — revertido.
-  //
-  // En vez de pelear fotograma a fotograma, se apaga el giroscopio
-  // ENTERO en cuanto se detecta un arrastre manual real (no un simple
-  // roce/pellizco de zoom, filtrado con MANUAL_DRAG_THRESHOLD): a partir
-  // de ahí el usuario controla la vista completa (arriba/abajo e
-  // izquierda/derecha) solo con el dedo, sin ninguna corrección, hasta
-  // que recargue la página.
+  function readGyroSpherical() {
+    if (!gyroscopePlugin.controls?.update()) return null;
+    gyroscopePlugin.controls.object.getWorldDirection(gyroDirection);
+    return viewer.dataHelper.vector3ToSphericalCoords(gyroDirection);
+  }
+
+  function enableGyroTracking() {
+    gyroActive = true;
+    gyroYawOffset = null;
+    if (gyroOriginalMoveInertia === null) {
+      gyroOriginalMoveInertia = viewer.config.moveInertia;
+    }
+    viewer.config.moveInertia = 0;
+  }
+
+  function disableGyroTracking() {
+    gyroActive = false;
+    if (gyroOriginalMoveInertia !== null) {
+      viewer.config.moveInertia = gyroOriginalMoveInertia;
+    }
+  }
+
+  viewer.addEventListener('before-render', () => {
+    if (!gyroActive) return;
+    const spherical = readGyroSpherical();
+    if (!spherical) return;
+    if (gyroYawOffset === null) {
+      // Primer fotograma tras (re)activar: calibra sin mover la cámara,
+      // tomando la vista actual — donde el usuario la haya dejado —
+      // como referencia. Esto es lo que hace que "siga desde ahí".
+      const current = viewer.getPosition();
+      gyroYawOffset = spherical.yaw - current.yaw;
+      gyroPitchOffset = -spherical.pitch - current.pitch;
+      return;
+    }
+    viewer.dynamics.position.goto(
+      { yaw: spherical.yaw - gyroYawOffset, pitch: -spherical.pitch - gyroPitchOffset },
+      3,
+    );
+  });
+
+  // Arranca el permiso/sensor una vez (en iOS necesita un gesto real del
+  // usuario, por eso también se reintenta al primer toque) y deja el
+  // plugin oficial siempre parado — solo se usa como fuente del sensor,
+  // el bucle propio de arriba es quien manda sobre la cámara.
+  const initGyroControls = () => {
+    if (gyroControlsReady) return;
+    gyroscopePlugin
+      .start()
+      .then(() => {
+        gyroscopePlugin.stop();
+        gyroControlsReady = true;
+        // Si el permiso se concede a mitad de un arrastre (el propio
+        // toque que lo concede), no lo activamos todavía — se activará
+        // solo al soltar el dedo, igual que tras cualquier otro gesto.
+        if (!isPointerDown) enableGyroTracking();
+      })
+      .catch(() => {});
+  };
+  initGyroControls();
+  container.addEventListener('touchstart', initGyroControls, { passive: true });
+  container.addEventListener('click', initGyroControls);
+
+  container.addEventListener('touchstart', () => (isPointerDown = true), { passive: true });
+  container.addEventListener('mousedown', () => (isPointerDown = true));
+
+  // En cuanto se detecta un arrastre manual real (no un simple roce o
+  // pellizco de zoom, filtrado con MANUAL_DRAG_THRESHOLD), se pausa
+  // nuestro bucle para no pelearse con el gesto — y en cuanto se suelta
+  // el dedo, se reactiva recalibrando desde donde se ha quedado la
+  // vista.
   const MANUAL_DRAG_THRESHOLD = 0.02; // ~1.1°, para no confundir un pellizco de zoom con un arrastre real
   viewer.addEventListener('before-rotate', ({ position }) => {
-    if (!gyroscopePlugin.isEnabled()) return;
+    if (!gyroActive) return;
     const current = viewer.getPosition();
     const delta = Math.abs(position.pitch - current.pitch) + Math.abs(position.yaw - current.yaw);
     if (delta > MANUAL_DRAG_THRESHOLD) {
-      gyroManuallyDisabled = true;
-      gyroscopePlugin.stop();
+      disableGyroTracking();
     }
   });
 
+  const onPointerUp = () => {
+    isPointerDown = false;
+    if (gyroControlsReady && !gyroActive) enableGyroTracking();
+  };
+  container.addEventListener('touchend', onPointerUp, { passive: true });
+  container.addEventListener('mouseup', onPointerUp);
+
   if (import.meta.env.DEV) {
-    window.__psvDebug = { viewer, markersPlugin };
+    window.__psvDebug = {
+      viewer,
+      markersPlugin,
+      gyro: () => ({
+        active: gyroActive,
+        controlsReady: gyroControlsReady,
+        isPointerDown,
+        yawOffset: gyroYawOffset,
+        pitchOffset: gyroPitchOffset,
+      }),
+      // Solo para pruebas automatizadas (Puppeteer no tiene sensor de
+      // movimiento real): permite inyectar un `controls` simulado y
+      // forzar encendido/apagado para probar la lógica de calibración.
+      __gyroTestHooks: {
+        THREE,
+        setControls: (c) => {
+          gyroscopePlugin.controls = c;
+        },
+        enable: enableGyroTracking,
+        disable: disableGyroTracking,
+        forceControlsReady: () => {
+          gyroControlsReady = true;
+        },
+      },
+    };
 
     // Chivato visual (solo en `npm run dev`, nunca en producción): un
     // pequeño cartel en la esquina que muestra yaw/pitch en vivo mientras
