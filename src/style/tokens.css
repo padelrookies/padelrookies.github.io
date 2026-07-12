@@ -1,0 +1,77 @@
+:root {
+  /* ---------------------------------------------------------------------
+   * Paleta extraída de fotos reales del local: cartel exterior (magenta/
+   * fucsia de marca), manteles (granate), pilar interior (terracota),
+   * lámparas de la sala (verde azulado). Contrastes verificados AA sobre
+   * crema (ver scripts de verificación durante el desarrollo).
+   * ------------------------------------------------------------------- */
+
+  /* Neutros cálidos (fondo tipo papel, no blanco puro) */
+  --color-cream-50: #fbf3e7;
+  --color-cream-100: #f5e6d3;
+  --color-white: #fffdf9;
+  --color-charcoal-900: #241521;
+  --color-charcoal-700: #4a3b45;
+
+  /* Magenta — color de marca real (cartel de fachada) */
+  --color-magenta-900: #5c0a66;
+  --color-magenta-700: #7a1286;
+  --color-magenta-600: #950aa0; /* 6.74:1 sobre crema — texto AA */
+  --color-magenta-400: #c93dc5; /* solo decorativo/fondos, no texto */
+
+  /* Granate — manteles del comedor */
+  --color-wine-800: #4a1226;
+  --color-wine-700: #5b1732; /* 11.82:1 sobre crema — texto AA */
+
+  /* Terracota — pilar y maderas del local */
+  --color-terracotta-700: #6b4226; /* 7.84:1 sobre crema — texto AA */
+  --color-terracotta-600: #8a5a3a; /* fondos/iconos, no texto pequeño */
+
+  /* Verde azulado — lámparas de la sala */
+  --color-teal-800: #24413f; /* 10.02:1 sobre crema — texto AA */
+  --color-teal-600: #3a7873; /* acentos, iconos */
+
+  /* Oro — rótulos del cartel (solo decorativo/iconos, falla AA en texto) */
+  --color-gold-500: #c9971f;
+
+  /* ---------------------------------------------------------------------
+   * Tipografía
+   * ------------------------------------------------------------------- */
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+  --font-body: 'Archivo Variable', 'Archivo', system-ui, -apple-system, sans-serif;
+
+  --font-size-sm: clamp(0.875rem, 0.83rem + 0.2vw, 0.95rem);
+  --font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --font-size-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --font-size-xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+  --font-size-display: clamp(2.25rem, 1.6rem + 3.2vw, 4rem);
+  --font-size-hero: clamp(2.75rem, 1.8rem + 5vw, 6rem);
+
+  --line-height-tight: 1.1;
+  --line-height-snug: 1.35;
+  --line-height-body: 1.6;
+
+  /* ---------------------------------------------------------------------
+   * Espaciado, radios, sombras
+   * ------------------------------------------------------------------- */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+  --space-3xl: 9rem;
+
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 8px rgba(36, 21, 33, 0.1);
+  --shadow-md: 0 8px 28px rgba(36, 21, 33, 0.16);
+
+  --container-width: 1200px;
+  --nav-height: 64px;
+}

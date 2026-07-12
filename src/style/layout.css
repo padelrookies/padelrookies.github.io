@@ -1,0 +1,125 @@
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+section {
+  position: relative;
+}
+
+section[id] {
+  scroll-margin-top: var(--nav-height);
+}
+
+/* Páginas secundarias (carta, galería, historia, servicios) */
+.page-main {
+  padding-top: var(--nav-height);
+  min-height: calc(100vh - var(--nav-height));
+}
+
+.section {
+  padding-block: var(--space-2xl);
+}
+
+.section--tight {
+  padding-block: var(--space-xl);
+}
+
+.section__heading {
+  max-width: 42rem;
+  margin-inline: auto;
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.section__eyebrow {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: var(--font-size-sm);
+  color: var(--color-teal-800);
+  margin-bottom: var(--space-2xs);
+}
+
+.section--dark {
+  background: var(--color-wine-800);
+  color: var(--color-cream-50);
+}
+
+.section--dark h2,
+.section--dark h3 {
+  color: var(--color-cream-50);
+}
+
+/* Divisor ondulado tipo toldo, entre secciones */
+.scallop-divider {
+  height: 28px;
+  background-image: url('/patterns/scallop-divider.svg');
+  background-repeat: repeat-x;
+  background-size: 56px 28px;
+}
+
+.scallop-divider--magenta {
+  filter: none;
+}
+
+/* Revelado suave al hacer scroll (respeta prefers-reduced-motion) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  padding: 0.85rem 1.75rem;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 44px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--primary {
+  background: var(--color-magenta-600);
+  color: var(--color-white);
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--color-magenta-900);
+  border-color: currentColor;
+}
+
+.btn--on-dark {
+  background: var(--color-cream-50);
+  color: var(--color-wine-800);
+}

@@ -1,0 +1,215 @@
+.carta-accordion {
+  position: relative;
+  height: calc(100vh - var(--nav-height));
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--color-charcoal-900);
+  z-index: 1;
+  --panel-w: clamp(96px, 16vw, 220px);
+  /* Proporción real de las fotos de la carta física (1058×2228px) —
+     con la 2.83 asumida antes (para un A2 teórico) object-fit:cover
+     recortaba los bordes y se comía el final de los precios. */
+  --panel-h: calc(var(--panel-w) * 2.105);
+}
+
+.carta-accordion__stage-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1600px;
+  perspective-origin: 50% 42%;
+  overflow: hidden;
+}
+
+.carta-accordion__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.carta-accordion__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(36, 21, 33, 0.45) 0%, rgba(36, 21, 33, 0.15) 40%, rgba(36, 21, 33, 0.6) 100%);
+}
+
+/* Sombra de contacto proyectada en el "suelo", justo debajo de la carta.
+   Su ancho/opacidad los anima GSAP al desplegarse (crece con la carta). */
+.carta-accordion__ground {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--panel-w) * 4);
+  height: 70px;
+  transform: translate(-50%, calc(var(--panel-h) / 2 + 40px)) rotateX(74deg);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(10px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Conjunto plegable completo: mide la hoja abierta (4 paneles) y gira
+   sobre su propio centro para el volteo final. GSAP anima rotationX/Y
+   (inclinación de "cámara" inicial que se endereza al abrir) y, al
+   final, rotationY:180 sobre este mismo elemento para enseñar el dorso. */
+.carta-accordion__flip {
+  position: relative;
+  width: calc(var(--panel-w) * 4);
+  height: var(--panel-h);
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  z-index: 2;
+}
+
+.carta-accordion__panel {
+  position: absolute;
+  top: 0;
+  width: var(--panel-w);
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* P2 es la base fija (no rota). Se coloca en la 2ª columna [W..2W] para
+   que, con P1 a su izquierda y P3/P4 a su derecha, la hoja abierta
+   ocupe todo el ancho [0..4W] centrada en .carta-accordion__flip. */
+.carta-accordion__panel--p2 {
+  left: var(--panel-w);
+  transform-origin: center center;
+}
+
+/* P1 cuelga del borde IZQUIERDO de P2 y pivota sobre su propio borde
+   derecho (la bisagra que comparten con P2). */
+.carta-accordion__panel--p1 {
+  left: -100%;
+  transform-origin: right center;
+}
+
+/* P3 cuelga del borde DERECHO de P2; P4 cuelga del borde derecho de P3.
+   Ambos pivotan sobre el borde compartido con su padre. */
+.carta-accordion__panel--p3 {
+  left: 100%;
+  transform-origin: left center;
+}
+.carta-accordion__panel--p4 {
+  left: 100%;
+  transform-origin: left center;
+}
+
+.carta-accordion__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border-right: 2px solid rgba(0, 0, 0, 0.35);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.3);
+}
+
+.carta-accordion__face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carta-accordion__face--front {
+  transform: rotateY(0deg);
+}
+
+.carta-accordion__face--back {
+  transform: rotateY(180deg);
+}
+
+/* Sombra dinámica del pliegue: se oscurece cuando el panel está plegado
+   y se desvanece al quedar plano (opacidad animada por GSAP). */
+.carta-accordion__fold-shadow {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(0.6px);
+  background: linear-gradient(
+    100deg,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.15) 30%,
+    rgba(255, 255, 255, 0.18) 52%,
+    rgba(0, 0, 0, 0.25) 72%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+/* prefers-reduced-motion: estado final abierto y plano, sin pin ni
+   recorrido largo, sin inclinación de cámara ni pliegues. */
+.carta-accordion--static {
+  height: min(70vh, 640px);
+}
+.carta-accordion--static .carta-accordion__flip,
+.carta-accordion--static .carta-accordion__panel {
+  transform: none !important;
+}
+.carta-accordion--static .carta-accordion__fold-shadow {
+  opacity: 0 !important;
+}
+.carta-accordion--static .carta-accordion__ground {
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .carta-accordion {
+    --panel-w: clamp(84px, 20vw, 140px);
+  }
+}
+
+/* Móvil: carrusel horizontal con scroll-snap nativo en vez del acordeón
+   3D (ver MOBILE_BREAKPOINT en cartaAccordionConfig.js — debe coincidir
+   con el ancho de arriba). Sin pin, sin GSAP: es scroll normal del
+   navegador, así que es fluido y fiable en cualquier móvil. */
+.carta-accordion--mobile {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  padding-block: var(--space-xl) var(--space-lg);
+}
+
+.carta-accordion__mobile-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.carta-accordion__mobile-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carta-accordion__slide {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  padding-inline: var(--space-md);
+}
+
+.carta-accordion__slide img {
+  width: 100%;
+  max-height: 68vh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.carta-accordion__mobile-hint {
+  text-align: center;
+  color: var(--color-cream-100);
+  font-size: var(--font-size-sm);
+  margin: var(--space-sm) 0 0;
+}

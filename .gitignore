@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+*.log
+.env
+.env.*
+
+# Material en bruto del cliente (fotos/PDF originales sin procesar) — ya
+# extraído a public/images/, no lo usa la web construida. 89MB, no hace
+# falta llevarlo al repo; se queda solo en este equipo.
+assets/

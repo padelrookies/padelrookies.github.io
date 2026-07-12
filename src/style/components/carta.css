@@ -1,0 +1,39 @@
+.carta__menu-dia {
+  background: var(--color-magenta-600);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.carta__menu-dia h3 {
+  color: var(--color-cream-50);
+  margin-bottom: var(--space-md);
+}
+
+.carta__menu-dia-prices {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.carta__menu-dia-prices strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--color-cream-50);
+}
+
+.carta__menu-dia-prices span {
+  color: var(--color-cream-100);
+  font-size: var(--font-size-sm);
+}
+
+.carta__menu-dia-incluye {
+  margin-top: var(--space-md);
+  margin-bottom: 0;
+  color: var(--color-cream-100);
+  font-size: var(--font-size-sm);
+}

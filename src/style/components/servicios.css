@@ -1,0 +1,29 @@
+.servicios__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+}
+
+.servicios__card {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.servicios__card img {
+  margin-inline: auto;
+  margin-bottom: var(--space-xs);
+}
+
+.servicios__card h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-3xs);
+}
+
+.servicios__card p {
+  color: var(--color-charcoal-700);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}

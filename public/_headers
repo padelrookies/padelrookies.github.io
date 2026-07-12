@@ -1,0 +1,18 @@
+# Cabeceras de seguridad para Netlify (este archivo viaja a la raíz de
+# dist/ y Netlify lo aplica automáticamente; otros hosts lo ignoran sin
+# romper nada). Referencia: https://docs.netlify.com/routing/headers/
+/*
+  # Nadie puede incrustar esta web en un iframe (clickjacking)
+  X-Frame-Options: DENY
+  # El navegador no debe "adivinar" tipos de archivo distintos al declarado
+  X-Content-Type-Options: nosniff
+  # Al salir hacia otros sitios (Maps, WhatsApp) solo se comparte el origen
+  Referrer-Policy: strict-origin-when-cross-origin
+  # Esta web no usa cámara, micrófono ni geolocalización
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  # Política de contenido: todo debe venir del propio dominio, salvo el
+  # iframe de Google Maps (frame-src). blob:/data: en img y worker son
+  # necesarios para el visor 360 (three.js) y las imágenes empaquetadas.
+  # style-src 'unsafe-inline' es necesario porque GSAP y Photo Sphere
+  # Viewer escriben estilos inline al animar/posicionar elementos.
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'

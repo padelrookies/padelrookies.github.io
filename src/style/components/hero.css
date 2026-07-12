@@ -1,0 +1,256 @@
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 480px;
+  overflow: hidden;
+  background: var(--color-charcoal-900);
+}
+
+.hero__panorama-mount {
+  position: absolute;
+  inset: 0;
+}
+
+/* La foto de fachada es plana (no una esfera 360°, que no tiene "arriba"
+   fijo), así que el rótulo rosa del cartel real queda siempre pegado al
+   borde superior de la imagen — con inset:0 la nav fija (opaca, encima
+   de todo) lo tapaba en cualquier pantalla de altura normal. Reservamos
+   la franja de la nav para que la foto empiece justo debajo: se pierde
+   el full-bleed edge-to-edge en esa franja, pero el rótulo queda
+   siempre visible, en vez de depender de la altura de cada pantalla. */
+.hero__frame-wrap {
+  position: absolute;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hero__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Puerta de entrada real de la fachada */
+  transform-origin: 38% 61%;
+  will-change: transform, filter;
+}
+
+.hero__frame--ghost {
+  z-index: 0;
+  opacity: 0;
+}
+
+.hero__frame--main {
+  z-index: 1;
+}
+
+.hero__frame-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(36, 21, 33, 0.55) 0%, rgba(36, 21, 33, 0.15) 35%, rgba(36, 21, 33, 0.65) 100%);
+}
+
+/* Destello de "teletransporte" en el pico del desenfoque de movimiento */
+.hero__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: radial-gradient(circle at 38% 61%, rgba(255, 250, 240, 0.95) 0%, rgba(255, 250, 240, 0.4) 45%, rgba(255, 250, 240, 0) 75%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.hero__panorama-mount {
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hero__panorama-mount.is-interactive {
+  pointer-events: auto;
+}
+
+.hero__overlay {
+  position: relative;
+  z-index: 4;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--color-cream-50);
+  padding-inline: var(--space-md);
+}
+
+.hero__eyebrow {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-2xs);
+  opacity: 0.9;
+}
+
+.hero__title {
+  color: var(--color-cream-50);
+  font-size: var(--font-size-hero);
+  margin-bottom: var(--space-xs);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.hero__tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.hero__scroll-hint {
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
+  animation: hero-bounce 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__scroll-hint {
+    animation: none;
+  }
+}
+
+@keyframes hero-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.hero__drag-hint {
+  position: absolute;
+  z-index: 5;
+  bottom: var(--space-md);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--color-cream-50);
+  background: rgba(36, 21, 33, 0.55);
+  padding: var(--space-3xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.hero__panorama-mount.is-interactive ~ .hero__drag-hint {
+  opacity: 1;
+}
+
+/* El botón de cerrar (×) nativo del panel de PSV se dibuja en la esquina
+   superior derecha del panel; sin este ajuste queda justo debajo de la
+   nav fija (z-index más alto), tapado e inalcanzable. Bajamos el panel
+   para que arranque debajo de la nav y el botón quede libre. */
+.hero__panorama-mount .psv-panel {
+  top: var(--nav-height);
+  height: calc(100% - var(--nav-height));
+}
+
+/* Marcador de acción del panorama: icono + bocadillo de CTA siempre
+   visible (no un tooltip que solo aparece al pasar el ratón), para que
+   se note a simple vista que hay que hacer clic ahí. */
+.panorama-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.panorama-marker__icon {
+  display: block;
+  width: 60px;
+  height: 60px;
+}
+
+.panorama-marker__cta {
+  position: relative;
+  white-space: nowrap;
+  background: var(--color-cream-50);
+  color: var(--color-magenta-900);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* Piquito del bocadillo, apuntando hacia el icono debajo */
+.panorama-marker__cta::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-cream-50);
+}
+
+/* Latido de las burbujas de acción del panorama (carta/horarios/reserva)
+   para que llamen la atención. PSV posiciona/escala sus marcadores con
+   las propiedades CSS independientes `translate`/`scale` (no `transform`),
+   así que animar `transform` aquí no choca con el posicionamiento propio
+   del plugin — se componen. */
+@media (prefers-reduced-motion: no-preference) {
+  .panorama-marker--pulse {
+    animation: panorama-marker-pulse 2.2s ease-in-out infinite;
+  }
+  .panorama-marker--pulse:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes panorama-marker-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(255, 253, 249, 0));
+  }
+  50% {
+    transform: scale(1.16);
+    filter: drop-shadow(0 0 10px rgba(255, 253, 249, 0.7));
+  }
+}
+
+.panorama-panel {
+  padding: var(--space-sm);
+}
+
+.panorama-panel h3 {
+  color: var(--color-cream-50);
+  margin-bottom: var(--space-sm);
+}
+
+.panorama-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.panorama-panel__table th,
+.panorama-panel__table td {
+  text-align: left;
+  padding: var(--space-2xs) 0;
+  border-bottom: 1px solid var(--color-cream-100);
+  font-size: var(--font-size-sm);
+}
+
+.panorama-panel__table th {
+  font-weight: 700;
+  color: var(--color-cream-50);
+  padding-right: var(--space-sm);
+}

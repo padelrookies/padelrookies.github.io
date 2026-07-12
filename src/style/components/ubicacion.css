@@ -1,0 +1,72 @@
+.ubicacion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.ubicacion__horarios {
+  margin-block: var(--space-md);
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  scroll-margin-top: calc(var(--nav-height) + var(--space-md));
+}
+
+.ubicacion__horarios h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-xs);
+}
+
+.ubicacion__horarios-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ubicacion__horarios-table th,
+.ubicacion__horarios-table td {
+  text-align: left;
+  padding: var(--space-2xs) 0;
+  border-bottom: 1px solid var(--color-cream-100);
+}
+
+.ubicacion__horarios-table th {
+  color: var(--color-terracotta-700);
+  font-weight: 700;
+  padding-right: var(--space-md);
+  white-space: nowrap;
+}
+
+.ubicacion__address {
+  font-style: normal;
+  font-size: var(--font-size-lg);
+  font-family: var(--font-display);
+  margin-bottom: var(--space-md);
+}
+
+.ubicacion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.ubicacion__map {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  min-height: 360px;
+}
+
+.ubicacion__map iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  border: 0;
+}
+
+@media (max-width: 860px) {
+  .ubicacion {
+    grid-template-columns: 1fr;
+  }
+}

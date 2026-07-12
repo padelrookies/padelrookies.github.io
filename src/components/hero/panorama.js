@@ -1,0 +1,170 @@
+import { panoramaScenes } from '../../data/panorama-scenes.js';
+import { horarios } from '../../data/horarios.js';
+import { prefersReducedMotion } from '../../utils/reducedMotion.js';
+import { renderReservaCTA } from '../reserva-cta/ReservaCTA.js';
+
+function horariosPanelHtml() {
+  const filas = horarios.dias
+    .map((d) => {
+      const tramos = d.tramos.length ? d.tramos.join(' y ') : d.nota || 'Cerrado';
+      return `<tr><th scope="row">${d.dia}</th><td>${tramos}</td></tr>`;
+    })
+    .join('');
+  return `
+    <div class="panorama-panel">
+      <h3>${horarios.temporada}</h3>
+      <table class="panorama-panel__table">${filas}</table>
+    </div>`;
+}
+
+function reservaPanelHtml() {
+  const holder = document.createElement('div');
+  renderReservaCTA(holder, { variant: 'panel' });
+  return `<div class="panorama-panel"><h3>Reservar mesa</h3>${holder.innerHTML}</div>`;
+}
+
+// Convierte los datos de marcador (icono + texto) de panorama-scenes.js en
+// un marcador PSV de tipo `html`: icono + bocadillo de CTA siempre visible
+// (no un tooltip que solo aparece al pasar el ratón), agrupados en un único
+// elemento para que el latido (`panorama-marker--pulse`, en hero.css) anime
+// el conjunto entero como una sola pieza.
+function buildActionMarker(marker) {
+  const { id, position, image, cta, data } = marker;
+  return {
+    id,
+    position,
+    html: `
+      <div class="panorama-marker">
+        <span class="panorama-marker__cta">${cta}</span>
+        <img class="panorama-marker__icon" src="${image}" alt="" />
+      </div>`,
+    anchor: 'bottom center',
+    className: 'panorama-marker--pulse',
+    data,
+  };
+}
+
+function handleMarkerAction(viewer, action) {
+  if (!action) return;
+  if (action.type === 'link') {
+    window.location.assign(action.href);
+  } else if (action.type === 'scroll') {
+    const target = document.querySelector(action.target);
+    target?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  } else if (action.type === 'panel') {
+    const content = action.panelType === 'horarios' ? horariosPanelHtml() : reservaPanelHtml();
+    viewer.panel.show({ id: `panel-${action.panelType}`, content, width: '340px' });
+  }
+}
+
+/**
+ * Monta el visor 360° dentro del hero. Se llama de forma inmediata desde
+ * hero.js (no hay carga diferida por scroll: el panorama forma parte de
+ * la secuencia visible desde el primer momento, solo queda oculto tras la
+ * capa de fachada hasta que el timeline de heroScroll.js lo revela).
+ */
+export async function initPanorama() {
+  const container = document.getElementById('panorama-container');
+  if (!container) return;
+
+  const [{ Viewer }, { MarkersPlugin }, { VirtualTourPlugin }] = await Promise.all([
+    import('@photo-sphere-viewer/core'),
+    import('@photo-sphere-viewer/markers-plugin'),
+    import('@photo-sphere-viewer/virtual-tour-plugin'),
+  ]);
+  await Promise.all([
+    import('@photo-sphere-viewer/core/index.css'),
+    import('@photo-sphere-viewer/markers-plugin/index.css'),
+    import('@photo-sphere-viewer/virtual-tour-plugin/index.css'),
+  ]);
+
+  const reduced = prefersReducedMotion();
+
+  const viewer = new Viewer({
+    container,
+    // Sin `panorama` de nivel superior a propósito: con VirtualTourPlugin
+    // activo, cargar un panorama aquí Y que el plugin navegue a
+    // `startNodeId` a la vez provoca una carrera que aborta la primera
+    // petición de la imagen (visto en pruebas: net::ERR_ABORTED).
+    //
+    // touchmoveTwoFingers:true a propósito — el panorama ocupa toda la
+    // pantalla en móvil, así que un arrastre de un solo dedo tiene que
+    // seguir haciendo scroll de página con normalidad (para poder llegar
+    // a "Ubicación"/footer sin quedarse "atrapado" dentro del visor).
+    // Mirar alrededor pasa a requerir dos dedos, igual que en Google Maps
+    // Street View embebido.
+    touchmoveTwoFingers: true,
+    mousewheel: false,
+    navbar: ['zoom', 'caption', 'fullscreen'],
+    // Un poco menos de zoom que el 50 por defecto = FOV más ancho = la
+    // sala del comedor-1 (nodo de arranque) se ve un poco más alejada.
+    defaultZoomLvl: 40,
+    // Encuadre de arranque: coordenadas leídas a mano con el chivato de
+    // yaw/pitch en vivo (ver panel dev-only más abajo), ajustadas por el
+    // cliente para encarar los sofás con un poco de la tele en el encuadre.
+    defaultYaw: '56deg',
+    defaultPitch: '-11deg',
+    plugins: [
+      VirtualTourPlugin.withConfig({
+        positionMode: 'manual',
+        renderMode: '3d',
+        startNodeId: panoramaScenes[0].id,
+        nodes: panoramaScenes.map((s) => ({
+          id: s.id,
+          panorama: s.panorama,
+          name: s.name,
+          links: s.links,
+          markers: s.markers.map(buildActionMarker),
+        })),
+      }),
+      MarkersPlugin,
+    ],
+  });
+
+  const markersPlugin = viewer.getPlugin(MarkersPlugin);
+  markersPlugin.addEventListener('select-marker', ({ marker }) => {
+    handleMarkerAction(viewer, marker.data?.action);
+  });
+
+  if (import.meta.env.DEV) {
+    window.__psvDebug = { viewer, markersPlugin };
+
+    // Chivato visual (solo en `npm run dev`, nunca en producción): un
+    // pequeño cartel en la esquina que muestra yaw/pitch en vivo mientras
+    // arrastras la vista, para poder leer a ojo el encuadre exacto que se
+    // quiere fijar como `defaultYaw`/`defaultPitch` (o como posición de un
+    // marcador) sin tener que abrir la consola del navegador.
+    const readout = document.createElement('div');
+    readout.style.cssText =
+      'position:fixed;bottom:12px;left:12px;z-index:9999;background:rgba(0,0,0,.75);color:#fff;' +
+      'font:13px/1.4 monospace;padding:8px 12px;border-radius:8px;pointer-events:none;white-space:pre;';
+    document.body.appendChild(readout);
+    let lastClick = '';
+    const deg = (rad) => ((rad * 180) / Math.PI).toFixed(1);
+    const updateReadout = ({ position }) => {
+      readout.textContent =
+        `escena: ${viewer.getPlugin(VirtualTourPlugin).getCurrentNode()?.id}\n` +
+        `yaw: ${deg(position.yaw)}deg\npitch: ${deg(position.pitch)}deg${lastClick}`;
+    };
+    viewer.addEventListener('position-updated', updateReadout);
+    // Al hacer clic sobre la foto, guarda y muestra las coordenadas del
+    // punto EXACTO clicado (más preciso que centrar la vista a ojo) —
+    // pensado para ubicar marcadores/flechas en un sitio concreto.
+    viewer.addEventListener('click', ({ data }) => {
+      lastClick = `\n— último clic —\nyaw: ${deg(data.yaw)}deg\npitch: ${deg(data.pitch)}deg`;
+      updateReadout({ position: viewer.getPosition() });
+    });
+  }
+
+  viewer.addEventListener('ready', () => {
+    container.classList.add('is-mounted');
+    if (reduced) {
+      viewer.stopAutorotate?.();
+    }
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    const hint = document.querySelector('.hero__drag-hint');
+    if (hint && isTouch) {
+      hint.textContent = 'Desliza con dos dedos para mirar alrededor';
+    }
+  });
+}
