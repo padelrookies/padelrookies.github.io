@@ -1,6 +1,12 @@
 .hero {
   position: relative;
   height: 100vh;
+  /* svh = altura del viewport CON la barra de direcciones del navegador
+     móvil visible (la situación al aterrizar en la página). Con 100vh a
+     secas, el hero es más alto que lo visible al cargar y el borde
+     inferior queda cortado hasta que la barra se pliega — otro origen
+     de "saltos" al empezar el scroll. En escritorio svh === vh. */
+  height: 100svh;
   min-height: 480px;
   overflow: hidden;
   background: var(--color-charcoal-900);
@@ -170,6 +176,16 @@
     inset: 0;
     z-index: 0;
     background: var(--color-charcoal-900) url('/images/hero/hero-fachada-blurred.jpg') center 61% / cover no-repeat;
+  }
+
+  /* El degradado oscurecedor de ::after (pensado para el hero de
+     escritorio, donde la foto ES toda la pantalla y el texto necesita
+     contraste) aquí solo cubre la caja encogida de la foto: se ve como
+     una "máscara" translúcida pegada encima, y al hacer zoom la foto
+     crece por fuera de la caja y asoma SIN oscurecer por los bordes —
+     el parche se delata. Fuera en móvil; el título ya lleva text-shadow. */
+  .hero__frame-wrap::after {
+    content: none;
   }
 }
 

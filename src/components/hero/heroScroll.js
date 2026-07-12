@@ -3,6 +3,20 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// En móvil, al empezar a hacer scroll el navegador pliega su barra de
+// direcciones: eso redimensiona el viewport a mitad de gesto y descoloca
+// el pin (la página pega un salto — "se desplaza la imagen" en vez de
+// quedarse clavada animando). Dos medidas juntas lo evitan:
+//  - ignoreMobileResize: ScrollTrigger no recalcula el pin por ese
+//    redimensionado del navegador (solo por rotaciones/reales).
+//  - normalizeScroll en dispositivos táctiles: GSAP toma el control del
+//    scroll táctil, con lo que la barra del navegador ni se pliega — el
+//    viewport no cambia nunca de tamaño y el pin queda inmóvil de verdad.
+ScrollTrigger.config({ ignoreMobileResize: true });
+if (ScrollTrigger.isTouch === 1) {
+  ScrollTrigger.normalizeScroll(true);
+}
+
 /**
  * Secuencia cinemática única y continua (un solo pin, un solo scrub):
  *  0.00–0.30  Acercamiento — zoom sobre la fachada real hacia la puerta.
