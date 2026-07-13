@@ -58,35 +58,50 @@ function buildMobileCarouselHtml() {
       <img class="carta-accordion__intro-cover" src="/images/carta/carta-panel-1-dorso.jpg" alt="" decoding="async" />
     </div>
     <div class="carta-accordion__mobile-carousel">${slides}</div>
+    <button type="button" class="carta-accordion__tap-zone carta-accordion__tap-zone--prev" aria-label="Página anterior">‹</button>
+    <button type="button" class="carta-accordion__tap-zone carta-accordion__tap-zone--next" aria-label="Página siguiente">›</button>
     <div class="carta-accordion__dots" aria-hidden="true">${dots}</div>
-    <p class="carta-accordion__mobile-hint">Desliza para ver el resto de la carta ←→</p>`;
+    <p class="carta-accordion__mobile-hint">Desliza o toca los laterales para pasar página</p>`;
 }
 
 // Misma idea que la escena de escritorio (mesa de fondo + carta cerrada
 // que se abre), adaptada a algo fiable en móvil: en vez de enganchar el
 // scroll (riesgo ya conocido de líos con la barra de direcciones etc.),
-// se reproduce UNA vez, como un vídeo corto, en cuanto la sección entra
-// en pantalla — mismo patrón que `.reveal`/`observeReveal()`, pero con
-// una animación propia en vez del fundido genérico. La tapa (portada)
-// se aleja/desvanece mientras el carrusel —ya colocado en la página de
-// Tapas por debajo— crece hasta tamaño completo.
+// se reproduce UNA vez, como un vídeo corto, nada más entrar en la
+// página — no hace falta esperar a que el usuario haga scroll hasta
+// aquí, porque esta sección ya es la primera de carta.html. La tapa
+// (portada) se aleja/desvanece mientras el carrusel —ya colocado en la
+// página de Tapas por debajo— crece hasta tamaño completo.
 function initMobileCartaReveal(container) {
   if (prefersReducedMotion()) {
     container.classList.add('carta-accordion--opened');
     return;
   }
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          container.classList.add('carta-accordion--opened');
-          io.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.35 },
-  );
-  io.observe(container);
+  requestAnimationFrame(() => {
+    setTimeout(() => container.classList.add('carta-accordion--opened'), 350);
+  });
+}
+
+// Navegación por toque: tocar el lateral derecho/izquierdo del carrusel
+// pasa a la página siguiente/anterior (además de poder seguir
+// deslizando, que se mantiene). Un `<button>` grande y transparente en
+// cada lateral —no toda el área, para no interferir con el deslizado
+// normal por el centro— hace de zona de toque; el desplazamiento en sí
+// sigue siendo el `scrollTo` nativo del carrusel, así que reutiliza el
+// mismo scroll-snap y dispara el efecto de giro/puntos ya existentes.
+function initMobileTapNavigation(container) {
+  const carousel = container.querySelector('.carta-accordion__mobile-carousel');
+  const prevBtn = container.querySelector('.carta-accordion__tap-zone--prev');
+  const nextBtn = container.querySelector('.carta-accordion__tap-zone--next');
+  if (!carousel || !prevBtn || !nextBtn) return;
+
+  const goToOffset = (offset) => {
+    const current = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    const next = Math.max(0, Math.min(MOBILE_SLIDES.length - 1, current + offset));
+    carousel.scrollTo({ left: next * carousel.clientWidth, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  };
+  prevBtn.addEventListener('click', () => goToOffset(-1));
+  nextBtn.addEventListener('click', () => goToOffset(1));
 }
 
 // Efecto "página girando": mientras se desliza el dedo, cada página se
@@ -162,6 +177,7 @@ export function initCartaAccordion(container) {
     if (!prefersReducedMotion()) {
       initMobileCarouselTilt(container);
     }
+    initMobileTapNavigation(container);
     initMobileCartaReveal(container);
     return;
   }
