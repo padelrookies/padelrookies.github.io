@@ -47,9 +47,60 @@ function buildMobileCarouselHtml() {
         <img src="/images/carta/${src}" alt="${alt}" loading="lazy" decoding="async" />
       </div>`,
   ).join('');
+  const dots = MOBILE_SLIDES.map(() => '<span class="carta-accordion__dot"></span>').join('');
   return `
     <div class="carta-accordion__mobile-carousel">${slides}</div>
+    <div class="carta-accordion__dots" aria-hidden="true">${dots}</div>
     <p class="carta-accordion__mobile-hint">Desliza para ver la carta →</p>`;
+}
+
+// Efecto "página girando": mientras se desliza el dedo, cada página se
+// inclina en 3D según lo lejos que esté del centro (la que se va, la que
+// llega), y en cuanto una página queda centrada/en reposo vuelve a
+// rotationY:0 — a tamaño completo, igual que antes. Puro scroll nativo:
+// solo se lee `scrollLeft` para calcular la inclinación, nunca se
+// interviene el scroll en sí (sigue siendo tan fiable como un scroll
+// normal en cualquier móvil).
+function initMobileCarouselTilt(container) {
+  const carousel = container.querySelector('.carta-accordion__mobile-carousel');
+  const slides = [...container.querySelectorAll('.carta-accordion__slide')];
+  const dots = [...container.querySelectorAll('.carta-accordion__dot')];
+  if (!carousel || !slides.length) return;
+
+  let ticking = false;
+  const MAX_TILT = 38;
+
+  function update() {
+    ticking = false;
+    const carouselCenter = carousel.scrollLeft + carousel.clientWidth / 2;
+    let activeIndex = 0;
+    let closestDist = Infinity;
+    slides.forEach((slide, i) => {
+      const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+      const offset = (slideCenter - carouselCenter) / slide.offsetWidth; // -1..0..1 durante la transición
+      const clamped = Math.max(-1, Math.min(1, offset));
+      slide.style.transform = `perspective(1400px) rotateY(${clamped * -MAX_TILT}deg) scale(${1 - Math.abs(clamped) * 0.08})`;
+      slide.style.opacity = String(1 - Math.abs(clamped) * 0.35);
+      const dist = Math.abs(offset);
+      if (dist < closestDist) {
+        closestDist = dist;
+        activeIndex = i;
+      }
+    });
+    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === activeIndex));
+  }
+
+  carousel.addEventListener(
+    'scroll',
+    () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    },
+    { passive: true },
+  );
+  update();
 }
 
 /**
@@ -67,6 +118,9 @@ export function initCartaAccordion(container) {
   if (window.matchMedia(MOBILE_BREAKPOINT).matches) {
     container.classList.add('carta-accordion--mobile');
     container.innerHTML = buildMobileCarouselHtml();
+    if (!prefersReducedMotion()) {
+      initMobileCarouselTilt(container);
+    }
     return;
   }
 
