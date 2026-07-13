@@ -328,6 +328,13 @@
   align-items: center;
   justify-content: center;
   scroll-snap-align: center;
+  /* Sin esto, un deslizado rápido (fling) puede arrastrar el scroll con
+     inercia a través de varias páginas de golpe antes de que el
+     navegador decida dónde parar — scroll-snap-type por sí solo no lo
+     impide. scroll-snap-stop:always obliga a parar en CADA página, así
+     que como mucho se avanza una por deslizamiento, igual que con los
+     botones laterales. */
+  scroll-snap-stop: always;
   padding-inline: var(--space-md);
   transform-style: preserve-3d;
   will-change: transform, opacity;
