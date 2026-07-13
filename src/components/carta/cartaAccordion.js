@@ -40,6 +40,11 @@ const MOBILE_SLIDES = [
   { src: 'carta-panel-3-dorso.jpg', alt: 'Carta — página 6' },
 ];
 
+// Página en la que "abre" la carta antes de dejar el resto al carrusel:
+// la portada (índice 0) es la tapa cerrada, así que se abre directo en
+// la primera página de platos.
+const OPENING_SLIDE_INDEX = MOBILE_SLIDES.findIndex((s) => s.alt === 'Carta — página 1');
+
 function buildMobileCarouselHtml() {
   const slides = MOBILE_SLIDES.map(
     ({ src, alt }) => `
@@ -49,9 +54,39 @@ function buildMobileCarouselHtml() {
   ).join('');
   const dots = MOBILE_SLIDES.map(() => '<span class="carta-accordion__dot"></span>').join('');
   return `
+    <div class="carta-accordion__intro" aria-hidden="true">
+      <img class="carta-accordion__intro-cover" src="/images/carta/carta-panel-1-dorso.jpg" alt="" decoding="async" />
+    </div>
     <div class="carta-accordion__mobile-carousel">${slides}</div>
     <div class="carta-accordion__dots" aria-hidden="true">${dots}</div>
-    <p class="carta-accordion__mobile-hint">Desliza para ver la carta →</p>`;
+    <p class="carta-accordion__mobile-hint">Desliza para ver el resto de la carta ←→</p>`;
+}
+
+// Misma idea que la escena de escritorio (mesa de fondo + carta cerrada
+// que se abre), adaptada a algo fiable en móvil: en vez de enganchar el
+// scroll (riesgo ya conocido de líos con la barra de direcciones etc.),
+// se reproduce UNA vez, como un vídeo corto, en cuanto la sección entra
+// en pantalla — mismo patrón que `.reveal`/`observeReveal()`, pero con
+// una animación propia en vez del fundido genérico. La tapa (portada)
+// se aleja/desvanece mientras el carrusel —ya colocado en la página de
+// Tapas por debajo— crece hasta tamaño completo.
+function initMobileCartaReveal(container) {
+  if (prefersReducedMotion()) {
+    container.classList.add('carta-accordion--opened');
+    return;
+  }
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          container.classList.add('carta-accordion--opened');
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.35 },
+  );
+  io.observe(container);
 }
 
 // Efecto "página girando": mientras se desliza el dedo, cada página se
@@ -118,9 +153,16 @@ export function initCartaAccordion(container) {
   if (window.matchMedia(MOBILE_BREAKPOINT).matches) {
     container.classList.add('carta-accordion--mobile');
     container.innerHTML = buildMobileCarouselHtml();
+    // Se coloca en la página de Tapas ANTES de que nada sea visible (el
+    // carrusel arranca en opacity:0 mientras dura la animación de
+    // apertura), así que no hay ningún salto perceptible: cuando se
+    // revela, ya está mostrando esa página.
+    const carousel = container.querySelector('.carta-accordion__mobile-carousel');
+    carousel.scrollLeft = carousel.clientWidth * OPENING_SLIDE_INDEX;
     if (!prefersReducedMotion()) {
       initMobileCarouselTilt(container);
     }
+    initMobileCartaReveal(container);
     return;
   }
 
