@@ -12,7 +12,9 @@ import { initHero } from './components/hero/hero.js';
 import { renderUbicacion } from './components/ubicacion/ubicacion.js';
 import { renderFooter } from './components/footer/footer.js';
 import { observeReveal } from './utils/dom.js';
+import { injectRestaurantSchema } from './utils/structuredData.js';
 
+injectRestaurantSchema();
 renderNav();
 initHero();
 

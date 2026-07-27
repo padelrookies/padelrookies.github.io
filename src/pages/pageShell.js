@@ -9,8 +9,10 @@ import '../style/components/reserva-cta.css';
 import { renderNav } from '../components/nav/nav.js';
 import { renderFooter } from '../components/footer/footer.js';
 import { observeReveal } from '../utils/dom.js';
+import { injectRestaurantSchema } from '../utils/structuredData.js';
 
 export function initPageShell() {
+  injectRestaurantSchema();
   renderNav();
   renderFooter();
 }
