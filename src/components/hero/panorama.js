@@ -221,17 +221,38 @@ export async function initPanorama() {
   // el bucle propio de arriba es quien manda sobre la cámara.
   const initGyroControls = () => {
     if (gyroControlsReady) return;
-    gyroscopePlugin
-      .start()
-      .then(() => {
-        gyroscopePlugin.stop();
-        gyroControlsReady = true;
-        // Si el permiso se concede a mitad de un arrastre (el propio
-        // toque que lo concede), no lo activamos todavía — se activará
-        // solo al soltar el dedo, igual que tras cualquier otro gesto.
-        if (!isPointerDown) enableGyroTracking();
-      })
-      .catch(() => {});
+    const doStart = () =>
+      gyroscopePlugin
+        .start()
+        .then(() => {
+          gyroscopePlugin.stop();
+          gyroControlsReady = true;
+          // Si el permiso se concede a mitad de un arrastre (el propio
+          // toque que lo concede), no lo activamos todavía — se activará
+          // solo al soltar el dedo, igual que tras cualquier otro gesto.
+          if (!isPointerDown) enableGyroTracking();
+        })
+        .catch(() => {});
+
+    // iOS 13+ exige que DeviceOrientationEvent.requestPermission() se llame
+    // sincrónicamente dentro del handler del gesto del usuario. PSV también
+    // lo llama internamente en start(), pero lo hace tras un await propio,
+    // momento en que iOS ya considera el gesto caducado y deniega el acceso.
+    // Llamándolo aquí primero (de forma síncrona, antes de cualquier await)
+    // se bloquea el permiso dentro de la ventana del gesto; la llamada
+    // posterior de PSV recibe 'granted' al instante sin mostrar diálogo.
+    if (
+      typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function'
+    ) {
+      DeviceOrientationEvent.requestPermission()
+        .then((state) => {
+          if (state === 'granted') doStart();
+        })
+        .catch(() => {});
+    } else {
+      doStart();
+    }
   };
   initGyroControls();
   container.addEventListener('touchstart', initGyroControls, { passive: true });
