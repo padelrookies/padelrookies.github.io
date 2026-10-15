@@ -1,0 +1,33 @@
+name: Redirección a dominio propio
+
+# La web real se publica en Cloudflare. Esto solo deja en GitHub Pages una
+# página que redirige al dominio nuevo, mientras Google sigue indexando la
+# dirección antigua.
+on:
+  push:
+    branches: [main]
+    paths: ['redirect/**', '.github/workflows/redirect.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: redirect
+      - id: deployment
+        uses: actions/deploy-pages@v4
