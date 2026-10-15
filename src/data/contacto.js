@@ -1,7 +1,7 @@
 // Dominio de publicación en GitHub Pages. Si el negocio pasa a un dominio
 // propio, actualizar solo aquí — canonical, Open Graph, sitemap.xml y el
 // JSON-LD (structuredData.js) lo leen todos de esta única constante.
-export const SITE_URL = 'https://padelrookies.github.io';
+export const SITE_URL = 'https://elracodentito.com';
 
 // Datos reales y confirmados — no son placeholder.
 export const contacto = {
