@@ -1,5 +1,6 @@
 import { contacto } from '../../data/contacto.js';
 import { buildWhatsAppUrl, buildTelUrl } from '../reserva-cta/ReservaCTA.js';
+import { enVacaciones, desactivarContactoEnVacaciones } from '../../utils/vacaciones.js';
 
 export function renderNav() {
   const root = document.getElementById('nav-root');
@@ -40,7 +41,17 @@ export function renderNav() {
           </button>
         </div>
       </div>
-    </nav>`;
+    </nav>
+    ${
+      enVacaciones()
+        ? `<div class="aviso-vacaciones" role="status">
+      <p>Estamos de vacaciones. <strong>Volvemos a abrir el martes 27 de octubre.</strong></p>
+    </div>`
+        : ''
+    }`;
+
+  // renderNav se ejecuta en todas las páginas: aquí se engancha el bloqueo.
+  desactivarContactoEnVacaciones();
 
   const nav = root.querySelector('.nav-fixed');
   const toggle = root.querySelector('.nav-fixed__toggle');

@@ -10,6 +10,30 @@
   border-bottom: 1px solid rgba(92, 10, 102, 0.12);
 }
 
+.aviso-vacaciones {
+  position: fixed;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  z-index: 190;
+  padding: var(--space-2xs) var(--space-md);
+  background: var(--color-magenta-900);
+  color: var(--color-cream-50);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-snug);
+}
+
+.aviso-vacaciones p {
+  margin: 0;
+}
+
+a.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .nav-fixed__inner {
   max-width: var(--container-width);
   height: 100%;
