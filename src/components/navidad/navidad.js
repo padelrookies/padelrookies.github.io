@@ -19,13 +19,13 @@ const menus = [
   {
     id: 'menu-infantil',
     titulo: 'Menú infantil de Navidad',
-    precio: '30 €',
-    resumen: 'Primero y segundo a escoger, con bebida y postre.',
+    precio: '30 € · hasta 12 años',
+    resumen: 'Para niños hasta 12 años. Primero y segundo a escoger, con bebida y postre.',
     imagen: '/images/navidad/menu-infantil-navidad.jpg',
     ancho: 1160,
     alto: 1355,
     alt:
-      'Menú infantil de Navidad, 30 €. Primero a escoger: canelones de carne, macarrones boloñesa o sopa con fideos y bolitas de carne. Segundo a escoger: tiras de pollo kentuky, croquetas de cocido o huevos con patatas y virutas de jamón ibérico. Incluye bebidas y postre.',
+      'Menú infantil de Navidad para niños hasta 12 años, 30 €. Primero a escoger: canelones de carne, macarrones boloñesa o sopa con fideos y bolitas de carne. Segundo a escoger: tiras de pollo kentuky, croquetas de cocido o huevos con patatas y virutas de jamón ibérico. Incluye bebidas y postre.',
     mensaje: `Hola, querría reservar mesa con el Menú infantil de Navidad en ${contacto.nombre}`,
   },
 ];
