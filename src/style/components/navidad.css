@@ -84,7 +84,54 @@
 }
 
 @media (max-width: 760px) {
+  .navidad-section {
+    padding-block: var(--space-sm) var(--space-lg);
+    border-top-width: 0;
+  }
+
+  .navidad.container {
+    padding-inline: var(--space-xs);
+  }
+
+  /* Minimalista en móvil: directo al menú, sin título ni introducción
+     (siguen disponibles para lectores de pantalla). */
+  .navidad .section__heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   .navidad__grid {
     grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .navidad__card {
+    border-radius: var(--radius-md);
+  }
+
+  .navidad__body {
+    padding: var(--space-sm);
+    gap: var(--space-2xs);
+  }
+
+  .navidad__body > p:not(.navidad__precio) {
+    display: none;
+  }
+
+  .navidad__precio {
+    font-size: var(--font-size-lg);
+  }
+
+  .navidad__body h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .navidad__body .btn {
+    width: 100%;
   }
 }
