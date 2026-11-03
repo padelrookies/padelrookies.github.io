@@ -11,7 +11,7 @@ export function renderNav() {
           <img src="/images/logo/logo.png" alt="${contacto.nombre}" width="55" height="48" />
         </a>
         <ul class="nav-fixed__links" id="nav-links">
-          <li><a href="/carta.html#navidad">Menús de Navidad</a></li>
+          <li><a href="/navidad.html">Menús de Navidad</a></li>
           <li><a href="/carta.html">Carta</a></li>
           <li><a href="/esencia.html">Nuestra esencia</a></li>
           <li><a href="/servicios.html">Servicios</a></li>

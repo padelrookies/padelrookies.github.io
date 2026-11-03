@@ -11,6 +11,7 @@ export default defineConfig({
         main: resolve(import.meta.dirname, 'index.html'),
         carta: resolve(import.meta.dirname, 'carta.html'),
         esencia: resolve(import.meta.dirname, 'esencia.html'),
+        navidad: resolve(import.meta.dirname, 'navidad.html'),
         servicios: resolve(import.meta.dirname, 'servicios.html'),
       },
     },
