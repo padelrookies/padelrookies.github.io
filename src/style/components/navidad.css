@@ -1,0 +1,90 @@
+.navidad-section {
+  background: var(--color-cream-100);
+  border-block: 6px double var(--color-wine-700);
+}
+
+.navidad__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.navidad__card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.navidad__img-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.navidad__img-btn img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.navidad__body {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  align-items: flex-start;
+}
+
+.navidad__precio {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--color-wine-700);
+  line-height: var(--line-height-tight);
+}
+
+.navidad__dialog {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  max-width: min(96vw, 720px);
+  max-height: 96vh;
+}
+
+.navidad__dialog::backdrop {
+  background: rgba(36, 21, 33, 0.85);
+}
+
+.navidad__dialog img {
+  display: block;
+  max-width: 100%;
+  max-height: 92vh;
+  margin-inline: auto;
+  border-radius: var(--radius-md);
+}
+
+.navidad__close {
+  position: absolute;
+  top: var(--space-2xs);
+  right: var(--space-2xs);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--color-white);
+  color: var(--color-charcoal-900);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .navidad__grid {
+    grid-template-columns: 1fr;
+  }
+}
