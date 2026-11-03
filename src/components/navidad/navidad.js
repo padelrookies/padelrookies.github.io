@@ -1,8 +1,8 @@
 import { buildWhatsAppUrl } from '../reserva-cta/ReservaCTA.js';
 import { contacto } from '../../data/contacto.js';
 
-// Menús de Navidad. Para quitarlos tras las fiestas: borrar la llamada a
-// renderNavidad en src/main.js y src/pages/carta.js (y el enlace en nav.js).
+// Menús de Navidad (página navidad.html). Para quitarlos tras las fiestas:
+// borrar navidad.html, src/pages/navidad.js y el enlace en nav.js.
 const menus = [
   {
     id: 'menu-especial',
