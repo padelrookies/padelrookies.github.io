@@ -5,5 +5,5 @@ export const servicios = [
   { icono: '/icons/wifi.svg', nombre: 'Wifi gratis', descripcion: 'Conexión disponible para toda la clientela.' },
   { icono: '/icons/vegano.svg', nombre: 'Opciones veganas', descripcion: 'Alternativas sin producto animal en la carta.' },
   { icono: '/icons/cafe.svg', nombre: 'Cafetería y desayunos', descripcion: 'Café, tostadas y bocadillos desde primera hora.' },
-  { icono: '/icons/menu-dia.svg', nombre: 'Menú del día', descripcion: 'Entre semana y fines de semana, pan, bebida, postre y café incluidos.' },
+  { icono: '/icons/menu-dia.svg', nombre: 'Menú del día', descripcion: 'Entre semana y fines de semana, pan, bebida, postre o café incluidos.' },
 ];

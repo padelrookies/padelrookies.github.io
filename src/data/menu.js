@@ -6,7 +6,7 @@ export const menuDelDia = {
   nombre: 'Menú del día',
   precioLaborable: 15.0,
   precioFinDeSemana: 25.9,
-  incluye: 'Pan, bebida, postre y café',
+  incluye: 'Pan, bebida, postre o café',
   horarioServicio: null, // parcialmente ilegible en la foto del cartel
   fuente: 'Cartel de precios de la fachada',
   isPlaceholder: false,

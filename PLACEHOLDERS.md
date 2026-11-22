@@ -43,7 +43,7 @@ Nachos), Bocadillos, Ensaladas, y el resto de categorías en los paneles
 reales a `src/data/menu.js` (y quitar los `isPlaceholder: true` que
 correspondan) — decir cuándo se quiere hacer este trabajo.
 - El menú del día (`menuDelDia`) SÍ es real: 15,00 € laborables / 25,90 €
-  fin de semana y festivos, incluye pan, bebida, postre y café (cartel de
+  fin de semana y festivos, incluye pan, bebida, postre o café (cartel de
   precios de la fachada). Falta confirmar el horario exacto de servicio
   del menú (parcialmente ilegible en la foto).
 
